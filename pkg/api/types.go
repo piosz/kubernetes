@@ -3530,6 +3530,9 @@ const (
 	// "default-scheduler" is the name of default scheduler.
 	DefaultSchedulerName = "default-scheduler"
 
+	// "best-effort-scheduler" is the name of best effort scheduler.
+	BestEffortSchedulerName = "best-effort-scheduler"
+
 	// RequiredDuringScheduling affinity is not symmetric, but there is an implicit PreferredDuringScheduling affinity rule
 	// corresponding to every RequiredDuringScheduling affinity rule.
 	// When the --hard-pod-affinity-weight scheduler flag is not specified,

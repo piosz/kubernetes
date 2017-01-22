@@ -54,6 +54,8 @@ func init() {
 	// Retisters algorithm providers. By default we use 'DefaultProvider', but user can specify one to be used
 	// by specifying flag.
 	factory.RegisterAlgorithmProvider(factory.DefaultProvider, defaultPredicates(), defaultPriorities())
+	// Best effort scheduler algorithm provider
+	factory.RegisterAlgorithmProvider(factory.BestEffortProvider, defaultPredicates(), bestEffortPriorities())
 	// Cluster autoscaler friendly scheduling algorithm.
 	factory.RegisterAlgorithmProvider(ClusterAutoscalerProvider, defaultPredicates(),
 		copyAndReplace(defaultPriorities(), "LeastRequestedPriority", "MostRequestedPriority"))
@@ -200,6 +202,21 @@ func defaultPriorities() sets.String {
 
 		// TODO: explain what it does.
 		factory.RegisterPriorityFunction2("TaintTolerationPriority", priorities.ComputeTaintTolerationPriorityMap, priorities.ComputeTaintTolerationPriorityReduce, 1),
+	)
+}
+
+func bestEffortPriorities() sets.String {
+	return sets.NewString(
+		// Prioritize nodes with lower resorce usage.
+		factory.RegisterPriorityConfigFactory(
+			"LeastUtilizedPriority",
+			factory.PriorityConfigFactory{
+				MapReduceFunction: func(args factory.PluginFactoryArgs) (algorithm.PriorityMapFunction, algorithm.PriorityReduceFunction) {
+					return priorities.NewLeastUtilizedPriority(args.MetricsCache)
+				},
+				Weight: 1,
+			},
+		),
 	)
 }
 

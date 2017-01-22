@@ -38,6 +38,7 @@ import (
 	"k8s.io/kubernetes/plugin/pkg/scheduler"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm/predicates"
+	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm/priorities"
 	schedulerapi "k8s.io/kubernetes/plugin/pkg/scheduler/api"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/api/validation"
 
@@ -73,6 +74,8 @@ type ConfigFactory struct {
 	ControllerLister *cache.StoreToReplicationControllerLister
 	// a means to list all replicasets
 	ReplicaSetLister *cache.StoreToReplicaSetLister
+	// a means to get resource usage metrics
+	MetricsCache *priorities.MetricsCache
 
 	// Close this to stop all reflectors
 	StopEverything chan struct{}
@@ -126,6 +129,7 @@ func NewConfigFactory(client clientset.Interface, schedulerName string, hardPodA
 		ServiceLister:                  &cache.StoreToServiceLister{Indexer: cache.NewIndexer(cache.MetaNamespaceKeyFunc, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})},
 		ControllerLister:               &cache.StoreToReplicationControllerLister{Indexer: cache.NewIndexer(cache.MetaNamespaceKeyFunc, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})},
 		ReplicaSetLister:               &cache.StoreToReplicaSetLister{Indexer: cache.NewIndexer(cache.MetaNamespaceKeyFunc, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})},
+		MetricsCache:                   priorities.NewMetricsCache(client),
 		schedulerCache:                 schedulerCache,
 		StopEverything:                 stopEverything,
 		SchedulerName:                  schedulerName,
@@ -447,6 +451,7 @@ func (f *ConfigFactory) getPluginArgs() (*PluginFactoryArgs, error) {
 		NodeInfo:   &predicates.CachedNodeInfo{StoreToNodeLister: f.NodeLister},
 		PVInfo:     f.PVLister,
 		PVCInfo:    &predicates.CachedPersistentVolumeClaimInfo{StoreToPersistentVolumeClaimLister: f.PVCLister},
+		MetricsCache: f.MetricsCache,
 		HardPodAffinitySymmetricWeight: f.HardPodAffinitySymmetricWeight,
 		FailureDomains:                 sets.NewString(failureDomainArgs...).List(),
 	}, nil

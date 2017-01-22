@@ -42,6 +42,7 @@ type PluginFactoryArgs struct {
 	NodeInfo                       predicates.NodeInfo
 	PVInfo                         predicates.PersistentVolumeInfo
 	PVCInfo                        predicates.PersistentVolumeClaimInfo
+	MetricsCache                   *priorities.MetricsCache
 	HardPodAffinitySymmetricWeight int
 	FailureDomains                 []string
 }
@@ -87,6 +88,7 @@ var (
 
 const (
 	DefaultProvider = "DefaultProvider"
+	BestEffortProvider = "BestEffortProvider"
 )
 
 type AlgorithmProviderConfig struct {
